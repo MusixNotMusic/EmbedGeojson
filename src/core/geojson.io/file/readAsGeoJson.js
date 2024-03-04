@@ -6,6 +6,8 @@ import geojsonNormalize from '@mapbox/geojson-normalize';
 import gtfs2geojson from '../lib/gtfs2geojson';
 import * as shapefile from 'shapefile';
 
+import { readAsDom } from './readRawFile';
+
 /**
  * Read google earth file kml type.
  * @param {*} text 

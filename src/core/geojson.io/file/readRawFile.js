@@ -29,7 +29,7 @@ export function readAsText(f) {
  * @param {*} f 
  * @returns 
  */
-export function readAsText(f) {
+export function readAsArrayBuffer(f) {
     return new Promise((resolve, reject) => {
         try {
             const reader = new FileReader();
