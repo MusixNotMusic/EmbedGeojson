@@ -1,5 +1,5 @@
 // const  { checkFileType, fileCheckRuleList } = require("../src/core/geojson.io/fileType.js");
-import { checkFileType, fileCheckRuleList } from '../src/core/geojson.io/fileType.js'
+import { checkFileType, fileCheckRuleList } from '../src/core/geojson.io/file/fileType.js'
 
 const text = ''
 
