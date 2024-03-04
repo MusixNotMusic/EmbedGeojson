@@ -5,8 +5,9 @@ export const _ext = (filename, _) => {
 /**
  *  判断 ext type extFunction 返回
  */
-const fileCheckRuleList = [
+export const fileCheckRuleList = [
     { name: 'google-earth', ext: '.kml',      returnType: 'kml',       type: 'application/vnd.google-earth.kml+xml', description: 'google earth file type' },
+    { name: 'google-earth', ext: '.kml',      returnType: 'kml',       type: '', description: 'google earth file type' },
     { name: 'gpx',          ext: '.gpx',      returnType: 'gpx',       type: '',  description: 'Convert a GPX document to GeoJSON,  the GPS Exchange Format, https://www.topografix.com/gpx.asp' },
     { name: 'geojson',      ext: '.geojson',  returnType: 'geojson',   type: '',  description: 'geojson' },
     { name: 'json',         ext: '.json',     returnType: 'geojson',   type: '',  description: 'geojson' },
