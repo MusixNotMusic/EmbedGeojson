@@ -2,11 +2,16 @@ export const _ext = (filename, _) => {
     return filename.indexOf(_) !== -1;
 }
 
+
+export const fileTypeRuleList = [
+    { name: 'google-earth',  returnType: 'kml', type: 'application/vnd.google-earth.kml+xml', description: 'google earth file type' },
+
+]
+
 /**
  *  判断 ext type extFunction 返回
  */
-export const fileCheckRuleList = [
-    { name: 'google-earth', ext: '',          returnType: 'kml',       type: 'application/vnd.google-earth.kml+xml', description: 'google earth file type' },
+export const fileNameRuleList = [
     { name: 'google-earth', ext: '.kml',      returnType: 'kml',       type: '', description: 'google earth file type' },
     { name: 'gpx',          ext: '.gpx',      returnType: 'gpx',       type: '',  description: 'Convert a GPX document to GeoJSON,  the GPS Exchange Format, https://www.topografix.com/gpx.asp' },
     { name: 'geojson',      ext: '.geojson',  returnType: 'geojson',   type: '',  description: 'geojson' },
@@ -19,6 +24,9 @@ export const fileCheckRuleList = [
     { name: 'osm',          ext: '.osm',      returnType: 'xml',       type: '',  description: 'osm' },
     { name: 'poly',         ext: '.poly',     returnType: 'poly',      type: '',  description: 'poly' },
     { name: 'shp',          ext: '.shp',      returnType: 'shp',       type: '',  description: 'shapfile' },
+]
+
+export const fileContentRuleList = [
     { name: 'text1',        extTextFunction: (text) => _ext(text, 'shape_id,shape_pt_lat,shape_pt_lon'),                                    returnType: 'gtfs-shapes',      type: '',  description: 'gtfs-shapes' },
     { name: 'text2',        extTextFunction: (text) => _ext(text, '"shape_id","shape_pt_lat","shape_pt_lon"'),                              returnType: 'gtfs-shapes',      type: '',  description: 'gtfs-shapes' },
     { name: 'text1',        extTextFunction: (text) => _ext(text, 'stop_id,stop_code,stop_name,stop_desc,stop_lat,stop_lon'),               returnType: 'gtfs-stops',       type: '',  description: 'gtfs-stops' },
@@ -26,25 +34,56 @@ export const fileCheckRuleList = [
 ]
 
 /**
- * 返回文件类型
+ * 检测文件名称
  * @param {*} file 
  * @param {*} text 
  * @returns 
  */
-export const checkFileType = (file, text) => {
+export const checkFileName = (file) => {
     
-    const len = fileCheckRuleList.length;
+    const len = fileNameRuleList.length;
 
     for(let i = 0; i < len; i++) {
-        const rule = fileCheckRuleList[i];
+        const rule = fileNameRuleList[i];
 
         if (rule.ext && _ext(file.name, rule.ext)) {
             return rule.returnType;
         }
+    }
+    return '';
+}
+
+/**
+ * 检测文件类型 meta type 
+ * @param {*} file 
+ * @param {*} text 
+ * @returns 
+ */
+export const checkFileType = (file) => {
+    
+    const len = fileTypeRuleList.length;
+
+    for(let i = 0; i < len; i++) {
+        const rule = fileTypeRuleList[i];
 
         if (rule.type && rule.type === file.type) {
             return rule.returnType;
         }
+    }
+    return '';
+}
+
+/**
+ * 检查文件内容
+ * @param {*} text 
+ * @returns 
+ */
+export const checkFileContent = (text) => {
+    
+    const len = fileContentRuleList.length;
+
+    for(let i = 0; i < len; i++) {
+        const rule = fileContentRuleList[i];
 
         if (rule.extTextFunction && rule.extTextFunction(text)) {
             return rule.returnType;

@@ -1,10 +1,17 @@
-// const  { checkFileType, fileCheckRuleList } = require("../src/core/geojson.io/fileType.js");
-import { checkFileType, fileCheckRuleList } from '../src/core/geojson.io/file/fileType.js'
+import { 
+    checkFileName,
+    checkFileType,
+    checkFileContent, 
+    fileNameRuleList,
+    fileTypeRuleList,
+    fileContentRuleList 
+} from '../src/core/geojson.io/file/fileType.js'
 
-const text = ''
-
-const filesList = [
+const fileTypeTestList = [
     { name: '', type: 'application/vnd.google-earth.kml+xml', text: '' },
+]
+
+const fileNameTestList = [
     { name: 'google earch.kml', type: '', text: '' },
     { name: 'abc.gpx', type: '', text: ''  },
     { name: 'abc.geojson', type: '', text: ''  },
@@ -17,6 +24,9 @@ const filesList = [
     { name: 'abc.osm', type: '', text: ''  },
     { name: 'abc.poly', type: '', text: ''  },
     { name: 'abc.shp', type: '', text: ''  },
+]
+
+const fileContentTestList = [
     { name: '', type: '', text: 'shape_id,shape_pt_lat,shape_pt_lon'  },
     { name: '', type: '', text: '"shape_id","shape_pt_lat","shape_pt_lon"'  },
     { name: '', type: '', text: 'stop_id,stop_code,stop_name,stop_desc,stop_lat,stop_lon'  },
@@ -43,10 +53,26 @@ const testList = [
     { describe: 'file text content include:', it: '"stop_id","stop_code","stop_name","stop_desc","stop_lat","stop_lon"' },
 ]
 
-testList.forEach((spec, index) => {
+testList.slice(0, 1).forEach((spec, index) => {
     describe(spec.describe, () => {
         it(spec.it, () => {
-            expect(checkFileType(filesList[index], filesList[index].text)).toEqual(fileCheckRuleList[index].returnType);
+            expect(checkFileType(fileTypeTestList[index])).toEqual(fileTypeRuleList[index].returnType);
+        }); 
+    });
+})
+
+testList.slice(1, 10).forEach((spec, index) => {
+    describe(spec.describe, () => {
+        it(spec.it, () => {
+            expect(checkFileName(fileNameTestList[index])).toEqual(fileNameRuleList[index].returnType);
+        }); 
+    });
+})
+
+testList.slice(10, 14).forEach((spec, index) => {
+    describe(spec.describe, () => {
+        it(spec.it, () => {
+            expect(checkFileContent(fileContentTestList[index].text)).toEqual(fileContentRuleList[index].returnType);
         }); 
     });
 })
