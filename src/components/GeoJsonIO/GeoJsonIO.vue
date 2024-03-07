@@ -50,8 +50,6 @@ const addDemoModelLayer = (map) => {
         if (shapeType === 'point') {
             drawCircle(map, geojson);
         } else if (shapeType.includes('line')) {
-            // drawLine(map, geojson);
-            // const fillLayer = new FillStyleClass('fill-demo', map, geojson);
             const lineLayer = new LineStyleClass('line-demo', map, geojson);
             console.log('line ==>', lineLayer);
             lineLayer.addLayer();
