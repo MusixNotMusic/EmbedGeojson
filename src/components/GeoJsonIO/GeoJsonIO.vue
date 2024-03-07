@@ -14,6 +14,8 @@ import { zoomextent } from '../../core/geojson.io/lib/zoomextent';
 
 import { DropFileTransfer } from '../../core/geojson.io/dom/DropFileTransfer'
 
+import { FillStyleClass } from '../../core/mapbox/styles/fill';
+
 const mapboxGLLoadedFunc = (map) => {
     console.log('mapboxGLLoadedFunc ==>', map)
     addDemoModelLayer(map);
@@ -43,7 +45,10 @@ const addDemoModelLayer = (map) => {
         if (type.toLocaleLowerCase() === 'point') {
             drawCircle(map, geojson);
         } else {
-            drawLine(map, geojson);
+            // drawLine(map, geojson);
+            const fillLayer = new FillStyleClass('fill-demo', map, geojson);
+            console.log('fill==>', fillLayer);
+            fillLayer.addLayer();
         }
     })
 }
