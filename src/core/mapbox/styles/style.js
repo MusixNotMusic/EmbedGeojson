@@ -1,3 +1,5 @@
+import { toHeadUpperCaseCamelCase, toCamelCase } from '../utils';
+
 export class StyleClass {
     constructor(id, map, geojson) {
         this.id = id;

@@ -1,6 +1,5 @@
 import { StyleClass } from './style';
 import { randomRgb } from '../../color/color';
-import { toHeadUpperCaseCamelCase, toCamelCase } from '../utils';
 
 /**
  * https://docs.mapbox.com/style-spec/reference/layers/#fill

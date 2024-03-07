@@ -8,7 +8,7 @@ export class DropFileTransfer extends EventEmitter  {
 
         this.dropBind= this.drop.bind(this);
         this.dragOverBind= this.over.bind(this);
-        this.dragEneterBind= this.enter.bind(this);
+        this.dragEnterBind= this.enter.bind(this);
         this.dragLeaveBind= this.leave.bind(this);
 
         window.DropFileTransfer = this;
@@ -22,7 +22,6 @@ export class DropFileTransfer extends EventEmitter  {
     }
 
     drop(event) {
-        console.log('drop ===>', event)
         event.stopPropagation(); 
         event.preventDefault();
         this.dropOver(event);
@@ -44,38 +43,40 @@ export class DropFileTransfer extends EventEmitter  {
                 })
             })
         }
+        this.emit('drop-over');
     }
 
     over(event) {
         event.stopPropagation();
         event.preventDefault();
         event.dataTransfer.dropEffect = 'copy';
+        this.emit('drag-over');
     }
 
     enter(event) {
-        console.log('enter ==>', event); 
         event.stopPropagation();
         event.preventDefault();
         event.dataTransfer.dropEffect = 'copy';
+        this.emit('drag-enter');
     }
 
     leave(event) {
-        console.log('leave ==>', event); 
         event.stopPropagation();
         event.preventDefault();
         event.dataTransfer.dropEffect = 'copy';
+        this.emit('drag-leave');
     }
 
     addEventListener() {
         this.dom.addEventListener('drop', this.dropBind);
-        this.dom.addEventListener('dragenter', this.drapEneterBind);
+        this.dom.addEventListener('dragenter', this.dragEnterBind);
         this.dom.addEventListener('dragleave', this.dragLeaveBind);
         this.dom.addEventListener('dragover', this.dragOverBind);
     }
 
     removeEventListener() {
         this.dom.removeEventListener('drop', this.dropBind);
-        this.dom.removeEventListener('dragenter', this.dragEneterBind);
+        this.dom.removeEventListener('dragenter', this.dragEnterBind);
         this.dom.removeEventListener('dragleave', this.dragLeaveBind);
         this.dom.removeEventListener('dragover', this.dragOverBind);
     }
@@ -88,6 +89,9 @@ export class DropFileTransfer extends EventEmitter  {
 
         this.removeAllListeners('error');
         this.removeAllListeners('geojson-data');
+        this.removeAllListeners('drag-enter');
+        this.removeAllListeners('drag-leave');
+        this.removeAllListeners('drop-over');
     }
 
     destroy() {

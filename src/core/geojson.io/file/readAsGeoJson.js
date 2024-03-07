@@ -15,7 +15,7 @@ import { readAsDom } from './readRawFile';
  */
 export function readKml (text) {
     return new Promise((resolve, reject) => {
-        const kmldom = toDom(text);
+        const kmldom = readAsDom(text);
         if (!kmldom) {
             reject('Invalid KML file: not valid XML');
         }
@@ -43,7 +43,7 @@ export function readKml (text) {
  */
 export function readXml (text) {
     return new Promise((resolve, reject) => {
-        const xmldom = toDom(text);
+        const xmldom = readAsDom(text);
         if (!xmldom) {
             reject( 'Invalid XML file: not valid XML');
         }
@@ -62,7 +62,7 @@ export function readXml (text) {
  * @returns 
  */
 export function readGpx (text) {
-    return Promise.resolve(toGeoJSON.gpx(toDom(text)));
+    return Promise.resolve(toGeoJSON.gpx(readAsDom(text)));
 }
 
 /**
