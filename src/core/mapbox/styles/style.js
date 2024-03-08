@@ -54,7 +54,7 @@ export class StyleClass {
     }
 
     showLayer(show) {
-        setLayoutProperty('visibility', show ? 'visible' : 'none');
+        this.setLayoutProperty('visibility', show ? 'visible' : 'none');
     }
 
     setPaintProperty(key, value) {

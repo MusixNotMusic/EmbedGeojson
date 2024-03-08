@@ -62,7 +62,7 @@ export function readXml (text) {
  * @returns 
  */
 export function readGpx (text) {
-    return Promise.resolve(toGeoJSON.gpx(readAsDom(text)));
+    return Promise.resolve({ data: toGeoJSON.gpx(readAsDom(text)) });
 }
 
 /**
@@ -110,7 +110,7 @@ export function readCsv (text) {
                         raw: text
                     });
                 } else {
-                    return resolve(result);
+                    return resolve({ data: result });
                 }
         });
     })
@@ -119,7 +119,7 @@ export function readCsv (text) {
 export function readGtfsShapes (text) {
     return new Promise((resolve, reject) => {
         try {
-            return resolve(gtfs2geojson.lines(text));
+            return resolve({ data: gtfs2geojson.lines(text) });
           } catch (e) {
             return reject('Invalid GTFS shapes.txt file');
           }
@@ -130,7 +130,7 @@ export function readGtfsShapes (text) {
 export function readGtfsStops (text) {
     return new Promise((resolve, reject) => {
         try {
-            return resolve(gtfs2geojson.stops(text));
+            return resolve({ data: gtfs2geojson.stops(text) });
           } catch (e) {
             return reject('Invalid GTFS stops.txt file');
           }
@@ -138,7 +138,7 @@ export function readGtfsStops (text) {
 }
 
 export function readPloy (text) {
-    return Promise.resolve(polytogeojson(text));
+    return Promise.resolve({ data: polytogeojson(text) });
 }
 
 export function readShape (text) {
