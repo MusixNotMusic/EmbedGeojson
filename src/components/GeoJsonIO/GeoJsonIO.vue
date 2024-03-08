@@ -67,13 +67,13 @@ const addMapboxLayer = (map) => {
         if (shapeType === 'point') {
             drawCircle(map, geojson);
         } else if (shapeType.includes('line')) {
-            const lineLayer = new LineStyleClass('line-demo', map, geojson);
+            const lineLayer = new LineStyleClass(fd.name, map, geojson);
             console.log('line ==>', lineLayer);
             lineLayer.addLayer();
 
             addFileLayer(lineLayer, fd);
         } else if (shapeType.includes('poly')) {
-            const fillLayer = new FillStyleClass('fill-demo', map, geojson);
+            const fillLayer = new FillStyleClass(fd.name, map, geojson);
             console.log('fill ==>', fillLayer);
             fillLayer.addLayer();
 

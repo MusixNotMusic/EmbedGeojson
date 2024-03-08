@@ -28,8 +28,8 @@ export class LineStyleClass extends StyleClass{
             { name: 'cap', type: 'paint' },
             { name: 'color',   type: 'paint', value: this.paint['line-color'] },
             { name: 'dasharray', type: 'paint' },
-            { name: 'emissive-strength', type: 'paint' },
             { name: 'gap-width', type: 'paint' },
+            { name: 'offset', type: 'paint' },
             { name: 'opacity', type: 'paint' },
             { name: 'width', type: 'paint', value: this.paint['line-width'] },
         ]

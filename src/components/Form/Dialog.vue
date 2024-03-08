@@ -18,7 +18,21 @@
                 </div>
 
                 <div class="dialog-item-start" v-if="params.formType === 'colorPicker'">
-                    <el-color-picker v-model="params.value" :style="{width: '100px'}" show-alpha  @change="updateMapLayerChange(params)"/>
+                    <el-color-picker v-model="params.value" show-alpha  @change="updateMapLayerChange(params)"/>
+                </div>
+
+                <div class="dialog-item-start" v-if="params.formType === 'input'">
+                    <el-input v-model="params.value"  :type="params.inputType"  @change="updateMapLayerChange(params)"/>
+                </div>
+
+                <div class="dialog-item-start" v-if="params.formType === 'inputNumber'">
+                    <el-input-number v-model="params.value" :min="params.min" :max="params.max"  @change="updateMapLayerChange(params)"/>
+                </div>
+
+                <div class="dialog-item-start" v-if="params.formType === 'select'">
+                    <el-select v-model="params.value" @change="updateMapLayerChange(params)">
+                        <el-option v-for="item in params.list" :key="item.value" :label="item.name" :value="item"></el-option>
+                    </el-select>
                 </div>
             </div>
         </div>
@@ -26,7 +40,7 @@
    
 </template>
 <script>
-import { cloneDeep } from 'lodash';
+import { cloneDeep, isObject } from 'lodash';
 import { identifyFormType } from './form';
 import { toCamelCase } from '../../core/mapbox/utils';
 export default {
@@ -60,7 +74,12 @@ export default {
 
         const updateMapLayerChange = (params) => {
             const name = params.name;
-            const value = params.value;
+            let value = params.value;
+            console.log('updateMapLayerChange ===>', params);
+            if (isObject(value)) {
+                value = value.value;
+            }
+
 
             if (props.file) {
                 const layer = props.file.layer;
@@ -84,7 +103,6 @@ export default {
         top: calc(50% - 150px);
         left: calc(50% - 200px);
         width: 400px;
-        height: 300px;
         background: #fff;
         border-top-left-radius: 5px;
         border-top-right-radius: 5px;
@@ -93,6 +111,7 @@ export default {
         border-bottom-right-radius: 2px;
 
         box-shadow: 2px 3px 4px 2px rgba(33, 17, 17, 0.4);
+        padding-bottom: 10px;
 
         .dialog-head{
             display: flex;
