@@ -10,6 +10,8 @@ export class StyleClass {
         this.paint = {}
         this.layout = {}
 
+        this.hoverOpactiy = 0.0;
+
         this.paramsTable = [];
     }
 
@@ -53,10 +55,12 @@ export class StyleClass {
         if (map.getLayer(id)) map.removeLayer(id);
         if (map.getSource(id)) map.removeSource(id);
     }
+    
 
     showLayer(show) {
         this.setLayoutProperty('visibility', show ? 'visible' : 'none');
     }
+
 
     setPaintProperty(key, value) {
         const { id, map } = this;
@@ -80,7 +84,7 @@ export class StyleClass {
     generateParamsFunction () {
         this.paramsTable.forEach(item => {
             const functionName = toCamelCase('set-' + item.name);
-            this.__proto__[functionName] = (value) => {
+            this.__proto__[functionName] = function (value) {
                 if (item.type === 'paint') {
                     this.setPaintProperty(this.getTypePrefixFullName(item.name), value);
                 } else if (item.type === 'layout')  {

@@ -71,7 +71,7 @@ export default {
         }
 
         const draggableSortChange = (event) => {
-            console.log('draggableSortChange', event)
+            // console.log('draggableSortChange', event)
             const size = props.fileLayerList.length;
             const id = props.fileLayerList[event.moved.newIndex].layer.id;
             const beforeId = event.moved.newIndex + 1 < size ?  props.fileLayerList[event.moved.newIndex + 1].layer.id : null;

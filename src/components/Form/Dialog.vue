@@ -75,7 +75,6 @@ export default {
         const updateMapLayerChange = (params) => {
             const name = params.name;
             let value = params.value;
-            console.log('updateMapLayerChange ===>', params);
             if (isObject(value)) {
                 value = value.value;
             }
@@ -83,7 +82,7 @@ export default {
 
             if (props.file) {
                 const layer = props.file.layer;
-                layer[toCamelCase('set-'+name)](value);
+                layer[toCamelCase('set-'+name)].bind(layer)(value);
             }
 
         }
