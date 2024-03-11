@@ -1,39 +1,46 @@
 <template>
     <div class="content-area">
         <div class="content-head">图层：</div>
-        <div class="content-item" v-for="(file, index) in fileLayerList" :key="index">
-            <div class="content-item-name">
-                <el-icon><CopyDocument /></el-icon>
-                <span>{{ file.fd.name }}</span>
-            </div>
-            <div class="content-item-operator">
-                <div class="content-item-editor">
-                    <el-icon @click="editClickHandle(file)"><Edit class="pointer"/></el-icon>
+        <draggable :list="fileLayerList" @change="draggableSortChange">
+            <div class="content-item" v-for="(file, index) in fileLayerList" :key="index">
+                <div class="content-item-name">
+                    <el-icon><CopyDocument /></el-icon>
+                    <span>{{ file.fd.name }}</span>
                 </div>
-                <div class="content-item-view-layer">
-                    <el-icon class="pointer" @click="showLayerClickHandle(file)">
-                        <View v-if="file.status.showLayer" />
-                        <Hide v-if="!file.status.showLayer"/>
-                    </el-icon>
+                <div class="content-item-operator">
+                    <div class="content-item-editor">
+                        <el-icon @click="editClickHandle(file)"><Edit class="pointer"/></el-icon>
+                    </div>
+                    <div class="content-item-view-layer">
+                        <el-icon class="pointer" @click="showLayerClickHandle(file)">
+                            <View v-if="file.status.showLayer" />
+                            <Hide v-if="!file.status.showLayer"/>
+                        </el-icon>
+                    </div>
+                    <div class="content-item-delete">
+                        <el-icon class="pointer" @click="deleteItemLayer(file)"><Delete /></el-icon>
+                    </div>
                 </div>
             </div>
-        </div>
+        </draggable>
     </div>
     <Dialog v-if="currentFile && currentFile.status.openEditor" :file="currentFile" :show="currentFile.status.openEditor"></Dialog>
 </template>
 <script>
 import { ref } from 'vue';
 import Dialog from './Dialog.vue'
+import { VueDraggableNext } from 'vue-draggable-next'
 export default {
     name: 'contentArea',
-    components: { Dialog },
+    components: { Dialog, draggable: VueDraggableNext, },
     props: {
         fileLayerList: {
             type: Array,
             default: () => []
         }
     },
-    setup (props) {
+    emits: ['removeItemClick', 'draggableSortChange'],
+    setup (props, { emit }) {
         const showLayerClickHandle = (fileItem) => {
             const layer = fileItem.layer;
             fileItem.status.showLayer = !fileItem.status.showLayer;
@@ -59,10 +66,25 @@ export default {
             }, 100)
         }
 
+        const deleteItemLayer = (file) => {
+            emit('removeItemClick', file)
+        }
+
+        const draggableSortChange = (event) => {
+            console.log('draggableSortChange', event)
+            const size = props.fileLayerList.length;
+            const id = props.fileLayerList[event.moved.newIndex].layer.id;
+            const beforeId = event.moved.newIndex + 1 < size ?  props.fileLayerList[event.moved.newIndex + 1].layer.id : null;
+
+            emit('draggableSortChange', { id, beforeId })
+        }
+
         return {
             currentFile,
             showLayerClickHandle,
-            editClickHandle
+            editClickHandle,
+            deleteItemLayer,
+            draggableSortChange
         }
     }
 }
@@ -90,7 +112,7 @@ export default {
             justify-content: space-between;
             align-items: center;
             padding: 0px 20px 0px 20px;
-            height: 28px;
+            height: 40px;
             column-gap: 5px;
             font-size: 14px;
 

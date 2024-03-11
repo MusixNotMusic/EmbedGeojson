@@ -49,6 +49,7 @@ export class StyleClass {
      * 删除层
      */
     removeLayer() {
+        const { id, map } = this;
         if (map.getLayer(id)) map.removeLayer(id);
         if (map.getSource(id)) map.removeSource(id);
     }

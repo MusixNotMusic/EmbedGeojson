@@ -31,6 +31,7 @@
     "topojson-client": "^3.1.0",
     "v-drag": "^3.0.9",
     "vue": "^3.2.45",
+    "vue-draggable-next": "^2.2.1",
     "vue-router": "^4.1.6",
     "zstddec": "^0.0.2"
   },
