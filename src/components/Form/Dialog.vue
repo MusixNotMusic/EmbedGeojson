@@ -117,7 +117,9 @@ export default {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: rgb(94, 144, 209);
+            // background: rgb(94, 144, 209);
+            background: var(--head-bg-color);
+            // background:radial-gradient( rgb(133, 193, 204), rgb(80, 115, 161) 40%, rgb(40, 108, 197) 100%); 
             color: beige;
             padding:5px 10px;
             font-size: 16px;

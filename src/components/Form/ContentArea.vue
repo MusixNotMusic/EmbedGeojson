@@ -101,7 +101,7 @@ export default {
             height: 32px;
             line-height: 32px;
             text-align: left;
-            background: rgb(94, 144, 209);
+            background:  var(--head-bg-color);;
             color: beige;
             padding-left: 10px;
             font-size: 16px;
