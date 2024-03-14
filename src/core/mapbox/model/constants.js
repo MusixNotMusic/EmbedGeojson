@@ -19,3 +19,7 @@ export const colors = [
 export const getColorSystem = () => {
     return window['__YW__']['colorSystem']
 }
+
+export const getResourceCache = () => {
+    return window['__YW__']['resourceCache']
+}

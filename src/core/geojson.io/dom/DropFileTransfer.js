@@ -1,5 +1,5 @@
 import EventEmitter from "events";
-import { readGeoJsonData } from '../file/readGeoJsonData';
+import { readFileData } from '../file/readFileData';
 
 export class DropFileTransfer extends EventEmitter  {
     constructor() {
@@ -36,8 +36,12 @@ export class DropFileTransfer extends EventEmitter  {
             event.dataTransfer.files &&
             event.dataTransfer.files.length) {
             [...event.dataTransfer.files].forEach(fd => {
-                readGeoJsonData(fd).then((geojson) => {
-                    this.emit('geojson-data', geojson);
+                readFileData(fd).then((data) => {
+                    if (data.type === 'geojson') {
+                        this.emit('geojson-data', data);
+                    } else if(data.type === 'zip') {
+                        this.emit('zip-data', data);
+                    }
                 }).catch(e => {
                     this.emit('error', e);
                 })
@@ -89,6 +93,7 @@ export class DropFileTransfer extends EventEmitter  {
 
         this.removeAllListeners('error');
         this.removeAllListeners('geojson-data');
+        this.removeAllListeners('zip-data');
         this.removeAllListeners('drag-enter');
         this.removeAllListeners('drag-leave');
         this.removeAllListeners('drop-over');

@@ -22,6 +22,9 @@ import { DropFileTransfer } from '../../core/geojson.io/dom/DropFileTransfer'
 import { FillStyleClass } from '../../core/mapbox/styles/fill';
 import { CircleStyleClass } from '../../core/mapbox/styles/circle';
 import { LineStyleClass } from '../../core/mapbox/styles/line';
+import VoxelRender  from '../../core/mapbox/model/VoxelRender/VoxelRender';
+
+import { VoxelFormat } from '../../core/parseFile/Voxel/VoxelFormat';
 
 const center = ref([104.1465432836781, 30.857102559661133]);
 
@@ -62,16 +65,10 @@ const moveLayer = (id, beforeId) => {
     let _beforeId = beforeId;
     if (map) {
         const layers = map.getStyle().layers;
-        const size = layers.length - 1;
         const index = layers.findIndex(layer => layer.id === id);
         if (index < 0) {
             new Error("Window not exist map instance.")
         } 
-        // else {
-        //     if (!_beforeId) {
-        //         _beforeId = index + 1 > size ? null : layers[index + 1].id;
-        //     }
-        // }
         map.moveLayer(id, beforeId);
     } else {
         new Error("Window not exist map instance.")
@@ -116,6 +113,42 @@ const addMapboxLayer = (map) => {
         addFileLayer(fileLayer, fd);
 
         zoomextent(map, geojson);
+    })
+
+    dft.on('zip-data', (data) => {
+        console.log('zip-data ==>', data);
+        const fd = data.fd;
+
+        const instance = VoxelFormat.parser(data.data);
+        console.log('VoxelFormat ==>', instance);
+
+        const volume = {
+            minLongitude: instance.header.leftLongitude / 10000,
+            minLatitude: instance.header.bottomLatitude / 10000,
+            maxLongitude: instance.header.rightLongitude / 10000,
+            maxLatitude: instance.header.topLatitude / 10000,
+            data: instance.voxelData,
+            width:  instance.header.horDataCnt,
+            height: instance.header.verDataCnt,
+            depth:  instance.header.levelCnt,
+            cutHeight: 500
+        }
+        console.log('volume ==>', volume)
+        const voxelRender = new VoxelRender('voxel-demo' || fd.name, map);
+        voxelRender.render(volume);
+
+        map.fitBounds(
+            [
+                volume.minLongitude, 
+                volume.minLatitude, 
+                volume.maxLongitude, 
+                volume.maxLatitude
+            ], 
+            {
+                padding: 50,
+                duration: 1000
+            }
+        );
     })
 
     dft.on('drag-enter', () => { showModal.value = true })
