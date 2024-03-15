@@ -3,6 +3,7 @@ import { readBufferByTable } from "../Common/readBufferByConfigTable";;
 export class VoxelFormat {
 
     static headTable = [
+        { label: 'version',           type: 'int',    byteSize: 4,  size: 1,  content: '版本' },
         { label: 'leftLongitude',     type: 'int',    byteSize: 4,  size: 1,  content: '最小经度' },
         { label: 'topLatitude',       type: 'int',    byteSize: 4,  size: 1,  content: '最大纬度' },
         { label: 'rightLongitude',    type: 'int',    byteSize: 4,  size: 1,  content: '最大经度'},
@@ -57,16 +58,19 @@ export class VoxelFormat {
         // evelation 
         const { horDataCnt, verDataCnt, levelCnt, ratioCnt } = instance.header;
 
-        offset = +byteLength;
+        offset += byteLength;
 
         byteLength = levelCnt * 4;
 
         instance.readEvelationList(bytes.slice(offset, offset + byteLength));
 
         // voxel data
-        offset = +byteLength;
+        offset += byteLength;
 
         byteLength = horDataCnt * verDataCnt * levelCnt;
+
+        console.log('offset ==>', offset);
+        console.log('byteLength ==>', byteLength);
 
         instance.readVoxelData(bytes.slice(offset, offset + byteLength));
     
