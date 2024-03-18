@@ -135,7 +135,7 @@ export default class VoxelRender extends BaseModel{
 
         // highlight box
         const edgesGeometry = new THREE.EdgesGeometry(geometry);
-        const materialHL = new THREE.LineBasicMaterial({ color: 0xffffff, opacity: 0.3, transparent: true });
+        const materialHL = new THREE.LineBasicMaterial({ color: 0x000000, opacity: 0.3, transparent: true });
         const meshHL = new THREE.LineSegments( edgesGeometry, materialHL);
         this.meshHL = meshHL;
         this.scene.add(meshHL)

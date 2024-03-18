@@ -8,6 +8,7 @@ export class VoxelFormat {
         { label: 'topLatitude',       type: 'int',    byteSize: 4,  size: 1,  content: '最大纬度' },
         { label: 'rightLongitude',    type: 'int',    byteSize: 4,  size: 1,  content: '最大经度'},
         { label: 'bottomLatitude',    type: 'int',    byteSize: 4,  size: 1,  content: '最小纬度' },
+        { label: 'altitide',          type: 'int',    byteSize: 4,  size: 1,  content: '海拔高度' },
         { label: 'ratioCnt',          type: 'int',    byteSize: 4,  size: 1,  content: '采样分辨率' },
         { label: 'horDataCnt',        type: 'int',    byteSize: 4,  size: 1,  content: '水平数量' },
         { label: 'verDataCnt',        type: 'int',    byteSize: 4,  size: 1,  content: '垂直数量' },

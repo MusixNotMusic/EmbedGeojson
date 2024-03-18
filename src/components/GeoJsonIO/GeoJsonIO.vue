@@ -134,7 +134,7 @@ const addMapboxLayer = (map) => {
             cutHeight: 500
         }
         console.log('volume ==>', volume)
-        const voxelRender = new VoxelRender('voxel-demo' || fd.name, map);
+        const voxelRender = new VoxelRender(fd.name, map);
         voxelRender.render(volume);
 
         map.fitBounds(
