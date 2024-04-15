@@ -127,7 +127,7 @@ const addMapboxLayer = (map) => {
             minLatitude: instance.header.bottomLatitude / 10000,
             maxLongitude: instance.header.rightLongitude / 10000,
             maxLatitude: instance.header.topLatitude / 10000,
-            data: instance.voxelData,
+            data: instance.voxelData.slice(0, instance.voxelData.length),
             width:  instance.header.horDataCnt,
             height: instance.header.verDataCnt,
             depth:  instance.header.levelCnt,

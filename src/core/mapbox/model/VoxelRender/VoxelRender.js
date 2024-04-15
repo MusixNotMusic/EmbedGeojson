@@ -65,9 +65,10 @@ export default class VoxelRender extends BaseModel{
 
 
     render (volume) {
+        this.drawLayer();
         this.initVolume(volume);
         this.setColorMap(this.parameters.colorType);
-        this.drawLayer();
+        // this.drawLayer();
         this.showLayer(this.parameters.show);
     }
 
