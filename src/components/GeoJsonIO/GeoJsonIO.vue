@@ -14,7 +14,7 @@
 import { onMounted, onUnmounted, ref, toRaw } from 'vue';
 import MapboxGLInit from '../Map/MapboxGLInit.vue';
 import ContentArea from '../Form/ContentArea.vue'
-import { drawCircle } from '../../core/geojson.io/layer/circle';
+
 import { zoomextent } from '../../core/geojson.io/lib/zoomextent';
 
 import { DropFileTransfer } from '../../core/geojson.io/dom/DropFileTransfer'
@@ -134,8 +134,10 @@ const addMapboxLayer = (map) => {
             cutHeight: 500
         }
         console.log('volume ==>', volume)
-        const voxelRender = new VoxelRender(fd.name, map);
+        const voxelRender = new VoxelRender(fd.name + '-' + fd.size, map);
         voxelRender.render(volume);
+
+        addFileLayer(voxelRender, fd);
 
         map.fitBounds(
             [

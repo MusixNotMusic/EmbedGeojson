@@ -29,7 +29,7 @@
 <script>
 import { ref } from 'vue';
 import Dialog from './Dialog.vue'
-import { VueDraggableNext } from 'vue-draggable-next'
+import { VueDraggableNext } from 'vue-draggable-next';
 export default {
     name: 'contentArea',
     components: { Dialog, draggable: VueDraggableNext, },
