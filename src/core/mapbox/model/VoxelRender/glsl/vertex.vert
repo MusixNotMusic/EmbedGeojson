@@ -6,8 +6,9 @@ uniform vec3 cameraPosition;
 
 out vec3 vOrigin;
 out vec3 vDirection;
-
+out vec3 vPosition;
 void main() {
+    vPosition = position;
     vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
     vOrigin = vec3( inverse( modelMatrix ) * vec4( cameraPosition, 1.0 ) ).xyz;
     vDirection = position - vOrigin;

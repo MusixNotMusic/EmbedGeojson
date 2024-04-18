@@ -32,6 +32,9 @@ const showModal = ref(false);
 
 const mapboxGLLoadedFunc = (map) => {
     console.log('mapboxGLLoadedFunc ==>', map)
+    map.on('click', (event) => {
+        console.log('@click ==>', event.lngLat);
+    })
     addMapboxLayer(map);
 }
 

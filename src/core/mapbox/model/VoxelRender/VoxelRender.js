@@ -50,6 +50,9 @@ export default class VoxelRender extends BaseModel{
             rangeColor2:      { value: 1 },
             maxLat:           { value: 0 },
             minLat:           { value: 0 },
+            iResolution:      { value: [] },
+            xRange:           { value: [] },
+            yRange:           { value: [] },
         };
 
         this.colorNames = colors.map(color => { return { name: color.name } });
@@ -114,6 +117,60 @@ export default class VoxelRender extends BaseModel{
         this.uniforms.maxLat.value = volume.maxLatitude;
         this.uniforms.minLat.value = volume.minLatitude;
 
+        this.uniforms.iResolution.value = [volume.width, volume.height];
+
+        // test 
+        /**
+         * maxLatitude: 60.115
+           maxLongitude: 144.985
+           minLatitude: 10.015
+           minLongitude: 69.985
+         * 
+
+          maxLatitude: 50.275
+          maxLongitude: 125.965
+          minLatitude: 47.605
+          minLongitude: 121.885
+
+         */ 
+
+        const globalBounds = {
+           maxLatitude: 60.115,
+           maxLongitude: 144.985,
+           minLatitude: 10.015,
+           minLongitude: 69.985,
+           width: 1250,
+           height: 835
+        }
+
+        // const localtionBounds = {
+        //     maxLatitude: 50.275,
+        //     maxLongitude: 125.965,
+        //     minLatitude: 47.605,
+        //     minLongitude: 121.885,
+        // }
+
+        /*
+            {
+                "minX": 132.355,
+                "minY": 15.655,
+                "maxX": 135.145,
+                "maxY": 18.325
+            }
+        */ 
+        const localtionBounds = {
+            maxLatitude: 18.325,
+            maxLongitude: 135.145,
+            minLatitude: 15.655,
+            minLongitude: 132.355,
+        }
+
+        const applyX = (lng) => (lng - globalBounds.minLongitude) / (globalBounds.maxLongitude - globalBounds.minLongitude) * globalBounds.width;
+        const applyY = (lat) => (globalBounds.maxLatitude - lat) / (globalBounds.maxLatitude - globalBounds.minLatitude) * globalBounds.height;
+
+        this.uniforms.xRange.value = [applyX(localtionBounds.minLongitude), applyX(localtionBounds.maxLongitude)];
+        this.uniforms.yRange.value = [applyY(localtionBounds.maxLatitude), applyY(localtionBounds.minLatitude)];
+
         const geometry = new THREE.BoxGeometry( 1, 1, 1 );
 
         const material = new THREE.RawShaderMaterial( {
@@ -137,7 +194,7 @@ export default class VoxelRender extends BaseModel{
         // highlight box
         const edgesGeometry = new THREE.EdgesGeometry(geometry);
         const materialHL = new THREE.LineBasicMaterial({ color: 0x000000, opacity: 0.3, transparent: true });
-        const meshHL = new THREE.LineSegments( edgesGeometry, materialHL);
+        const meshHL = new THREE.LineSegments( edgesGeometry, materialHL );
         this.meshHL = meshHL;
         this.scene.add(meshHL)
 
@@ -147,6 +204,8 @@ export default class VoxelRender extends BaseModel{
             maxX: volume.maxLongitude,
             maxY: volume.maxLatitude,
         };
+
+        console.log('bounds ==>', bounds);
 
         this.setScenePosition(this.scene, bounds, volume.cutHeight * volume.depth * this.parameters.exaggeration);
 
