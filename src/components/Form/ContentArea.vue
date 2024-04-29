@@ -1,8 +1,8 @@
 <template>
     <div class="content-area">
         <div class="content-head">图层：</div>
-        <draggable :list="fileLayerList" @change="draggableSortChange">
-            <div class="content-item" v-for="(file, index) in fileLayerList" :key="index">
+        <draggable :list="fileInfoList" @change="draggableSortChange" class="file-list">
+            <div class="content-item" v-for="(file, index) in fileInfoList" :key="index">
                 <div class="content-item-name">
                     <el-icon><CopyDocument /></el-icon>
                     <span>{{ file.fd.name }}</span>
@@ -34,7 +34,7 @@ export default {
     name: 'contentArea',
     components: { Dialog, draggable: VueDraggableNext, },
     props: {
-        fileLayerList: {
+        fileInfoList: {
             type: Array,
             default: () => []
         }
@@ -72,9 +72,9 @@ export default {
 
         const draggableSortChange = (event) => {
             // console.log('draggableSortChange', event)
-            const size = props.fileLayerList.length;
-            const id = props.fileLayerList[event.moved.newIndex].layer.id;
-            const beforeId = event.moved.newIndex + 1 < size ?  props.fileLayerList[event.moved.newIndex + 1].layer.id : null;
+            const size = props.fileInfoList.length;
+            const id = props.fileInfoList[event.moved.newIndex].layer.id;
+            const beforeId = event.moved.newIndex + 1 < size ?  props.fileInfoList[event.moved.newIndex + 1].layer.id : null;
 
             emit('draggableSortChange', { id, beforeId })
         }
@@ -105,6 +105,11 @@ export default {
             color: beige;
             padding-left: 10px;
             font-size: 16px;
+        }
+
+        .file-list {
+            height: 100%;
+            overflow-y: scroll;
         }
 
         .content-item {

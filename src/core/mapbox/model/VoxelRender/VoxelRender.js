@@ -1,91 +1,154 @@
 import * as THREE from "three";
-import { isEmpty, defaultsDeep } from 'lodash'
-
-
+import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min'
+import { isEmpty, defaultsDeep, cloneDeep } from 'lodash'
+import mapboxgl from 'mapbox-gl'
 import vertexShader from './glsl/vertex.vert';
 import fragmentShader  from './glsl/semitransparent.frag';
 
 import { colors, getColorSystem, getResourceCache } from '../constants'
-
-import CSS2AxesSystem from '../../axis/CSS2AxesSystem';
-import BaseModel from "../BaseModel";
-
 /**
  * VoxelRender
  */
 
-export default class VoxelRender extends BaseModel{
-    constructor(id, map, options) {
-        super();
-        
+ export default class VoxelRender {
+    constructor(id, map) {
         this.id = id;
         this.map = map;
 
+        this.isThree = true;
+
+        this.vertexShader = vertexShader;
+        this.fragmentShader = fragmentShader;
+
+        this.volume = null;
+
+        this.renderer = new THREE.WebGLRenderer({ alpha: true });
+        this.scene = new THREE.Scene();
+        this.camera = new THREE.Camera();
 
         this.material = null;
         this.geometry = null;
         this.mesh = null;
 
-        this.parameters = defaultsDeep(options || {} ,{
-            colorType: 'Z',
-            threshold: 0.0,
-            threshold1: 1.0,
+        this.parameters = {
+            colorMap: 'Z',
+            threshold0: 0.0,
+            threshold:  1.0,
             depthSampleCount: 128,
             brightness: 1.0,
-            exaggeration: 4,
-            show: true
-        });
+            exaggeration: 1
+        };
 
         this.colorMapTexture = getColorSystem().colorMapTexture;
 
         this.uniforms = {
             cameraPosition:   { value: new THREE.Vector3() },
-            map:              { value: null },
+            tex:              { value: null },
             colorMap:         { value: null },
             depthSampleCount: { value: 256 },
-            threshold:        { value: 0 },
-            threshold1:       { value: 1 },
+            threshold0:       { value: 0 },
+            threshold:        { value: 1 },
             brightness:       { value: 1 },
             rangeColor1:      { value: 0 },
             rangeColor2:      { value: 1 },
-            maxLat:           { value: 0 },
-            minLat:           { value: 0 },
-            iResolution:      { value: [] },
-            xRange:           { value: [] },
-            yRange:           { value: [] },
+            maxLat:           { value: 50 },
+            minLat:           { value: 20 },
+            minAlt:           { value: 0.5 },
+            maxAlt:           { value: 0.7 },
         };
 
-        this.colorNames = colors.map(color => { return { name: color.name } });
+        this.colorNames = colors.map(color => { return color.name })
 
-        this.isLoaded = true;
+        this.initGui()
+        window.VolumeRender = this;
+    }
 
-        window.voxelRender = this;
+    initGui () {
+        const gui = new GUI();
 
-        this.css2AxesSystem = new CSS2AxesSystem(map);
+        this.gui = gui;
+        this.gui.show(false);
+        const updateUniforms = this.updateUniforms.bind(this);
 
-        this.resizeBind = this.resize.bind(this);
+        gui.add( this.parameters, 'colorMap', this.colorNames ).onChange( updateUniforms );
+        gui.add( this.parameters, 'threshold0', 0, 1, 0.01 ).onChange( updateUniforms );
+        gui.add( this.parameters, 'threshold', 0, 1, 0.01 ).onChange( updateUniforms );
+        gui.add( this.parameters, 'depthSampleCount', 0, 512, 1 ).onChange( updateUniforms );
+        gui.add( this.parameters, 'brightness', 0, 7, 0.1 ).onChange( updateUniforms );
+    }
+
+    updateUniforms() {
+
+        this.scene.children.forEach(mesh => {
+            if (mesh.material.uniforms) {
+                mesh.material.uniforms.colorMap.value = this.colorMapTexture[ this.parameters.colorMap ];
+                mesh.material.uniforms.threshold.value = this.parameters.threshold;
+                mesh.material.uniforms.threshold0.value = this.parameters.threshold0;
+                mesh.material.uniforms.depthSampleCount.value = this.parameters.depthSampleCount;
+                mesh.material.uniforms.brightness.value = this.parameters.brightness;
+            }
+        })
     }
 
 
+    setData(volume) {
+        this.clearScene();
+        this.render(volume)
+    }
+
+    addData(volume) {
+        this.render(volume)
+    }
+
+    removeData(id) {
+       const object = this.scene.getObjectByName(id);
+       const object1 = this.scene.getObjectByName(id+'-edges');
+       if (object) {
+            this.scene.remove(object);
+            object.clear();
+       }
+
+       if (object1) {
+            this.scene.remove(object1);
+            object1.clear();
+       }
+
+       if (this.scene.children.length === 0) {
+            this.dispose();
+       }
+    }
+    
     render (volume) {
-        this.drawLayer();
-        this.initVolume(volume);
-        this.setColorMap(this.parameters.colorType);
-        // this.drawLayer();
-        this.showLayer(this.parameters.show);
+        if (Array.isArray(volume)) {
+            volume.forEach(v => {
+                this.initVolume(v);
+            })
+        } else {
+            this.initVolume(volume);
+        }
+
+        this.setColorMap(this.parameters.colorMap);
+
+        this.drawLayer()
     }
+
+    reset(volume) {
+        this.clearScene();
+        
+        this.render(volume)
+    }
+
 
     initCanvas(map, gl) {
         const { renderer } = this;
 
         if (map && renderer.domElement) {
             const mapCanvas = map.getCanvas();
-
             const width = mapCanvas.width;
             const height = mapCanvas.height;
 
-            this.renderer.setPixelRatio( window.devicePixelRatio );
-            this.renderer.setSize( width, height );
+            renderer.setPixelRatio( window.devicePixelRatio );
+            renderer.setSize( width, height );
 
             renderer.domElement.style.width = mapCanvas.style.width;
             renderer.domElement.style.height = mapCanvas.style.height;
@@ -95,12 +158,11 @@ export default class VoxelRender extends BaseModel{
 
             map.getCanvasContainer().appendChild(renderer.domElement);
         }
-
-        this.css2AxesSystem.init();
     }
 
 
     initVolume(volume) {
+        const faceSize = volume.width * volume.height;
         const texture = new THREE.Data3DTexture( volume.data, volume.width, volume.height, volume.depth );
         texture.format = THREE.RedFormat;
         texture.type = THREE.UnsignedByteType;
@@ -111,73 +173,21 @@ export default class VoxelRender extends BaseModel{
         this.volume = volume;
 
         // Material
+        const uniforms = cloneDeep(this.uniforms);
 
-        this.uniforms.map.value =  texture;
-        this.uniforms.colorMap.value =  this.colorMapTexture[this.parameters.colorType];
-        this.uniforms.maxLat.value = volume.maxLatitude;
-        this.uniforms.minLat.value = volume.minLatitude;
-
-        this.uniforms.iResolution.value = [volume.width, volume.height];
-
-        // test 
-        /**
-         * maxLatitude: 60.115
-           maxLongitude: 144.985
-           minLatitude: 10.015
-           minLongitude: 69.985
-         * 
-
-          maxLatitude: 50.275
-          maxLongitude: 125.965
-          minLatitude: 47.605
-          minLongitude: 121.885
-
-         */ 
-
-        const globalBounds = {
-           maxLatitude: 60.115,
-           maxLongitude: 144.985,
-           minLatitude: 10.015,
-           minLongitude: 69.985,
-           width: 1250,
-           height: 835
-        }
-
-        // const localtionBounds = {
-        //     maxLatitude: 50.275,
-        //     maxLongitude: 125.965,
-        //     minLatitude: 47.605,
-        //     minLongitude: 121.885,
-        // }
-
-        /*
-            {
-                "minX": 132.355,
-                "minY": 15.655,
-                "maxX": 135.145,
-                "maxY": 18.325
-            }
-        */ 
-        const localtionBounds = {
-            maxLatitude: 18.325,
-            maxLongitude: 135.145,
-            minLatitude: 15.655,
-            minLongitude: 132.355,
-        }
-
-        const applyX = (lng) => (lng - globalBounds.minLongitude) / (globalBounds.maxLongitude - globalBounds.minLongitude) * globalBounds.width;
-        const applyY = (lat) => (globalBounds.maxLatitude - lat) / (globalBounds.maxLatitude - globalBounds.minLatitude) * globalBounds.height;
-
-        this.uniforms.xRange.value = [applyX(localtionBounds.minLongitude), applyX(localtionBounds.maxLongitude)];
-        this.uniforms.yRange.value = [applyY(localtionBounds.maxLatitude), applyY(localtionBounds.minLatitude)];
+        uniforms.tex.value =  texture
+        uniforms.colorMap.value =  this.colorMapTexture[this.parameters.colorMap]
+        uniforms.maxLat.value = volume.maxLatitude
+        uniforms.minLat.value = volume.minLatitude
 
         const geometry = new THREE.BoxGeometry( 1, 1, 1 );
 
+
         const material = new THREE.RawShaderMaterial( {
             glslVersion: THREE.GLSL3,
-            uniforms: this.uniforms,
-            vertexShader: vertexShader,
-            fragmentShader: fragmentShader,
+            uniforms: uniforms,
+            vertexShader: this.vertexShader,
+            fragmentShader: this.fragmentShader,
             transparent: true,
             side: THREE.DoubleSide
         });
@@ -185,17 +195,19 @@ export default class VoxelRender extends BaseModel{
         // THREE.Mesh
         const mesh = new THREE.Mesh( geometry, material );
 
-        this.geometry = geometry;
-        this.material = material;
-        this.mesh     = mesh;
+        mesh.name = volume.id;
+        // this.geometry = geometry;
+        // this.material = material;
+        // this.mesh     = mesh;
 
         this.scene.add(mesh)
 
-        // highlight box
+        // box
         const edgesGeometry = new THREE.EdgesGeometry(geometry);
-        const materialHL = new THREE.LineBasicMaterial({ color: 0x000000, opacity: 0.3, transparent: true });
-        const meshHL = new THREE.LineSegments( edgesGeometry, materialHL );
-        this.meshHL = meshHL;
+        const materialHL = new THREE.LineBasicMaterial({ color: 0x000000, opacity: 0.9, transparent: true });
+        const meshHL = new THREE.LineSegments( edgesGeometry, materialHL);
+
+        meshHL.name = volume.id + '-edges';
         this.scene.add(meshHL)
 
         const bounds = {
@@ -205,38 +217,58 @@ export default class VoxelRender extends BaseModel{
             maxY: volume.maxLatitude,
         };
 
-        console.log('bounds ==>', bounds);
-
-        this.setScenePosition(this.scene, bounds, volume.cutHeight * volume.depth * this.parameters.exaggeration);
+        this.setScenePosition(mesh, bounds);
+        this.setScenePosition(meshHL, bounds);
 
         this.renderer.render( this.scene, this.camera );
     }
+
+    setScenePosition (scene, bounds) {
+        const min = mapboxgl.MercatorCoordinate.fromLngLat([bounds.minX, bounds.minY], 0);
+        const max = mapboxgl.MercatorCoordinate.fromLngLat([bounds.maxX, bounds.maxY], this.altitude || 80000);
+
+        const boundScaleBox = [  min.x, min.y, min.z, max.x, max.y, max.z ];
+
+        scene.position.x = (boundScaleBox[0] + boundScaleBox[3]) / 2;
+        scene.position.y = (boundScaleBox[1] + boundScaleBox[4]) / 2;
+        scene.position.z = (boundScaleBox[2] + boundScaleBox[5]) / 2;
+
+        scene.scale.x = (boundScaleBox[3] - boundScaleBox[0]);
+        scene.scale.y = (boundScaleBox[4] - boundScaleBox[1]);
+        scene.scale.z = (boundScaleBox[5] - boundScaleBox[2]);
+    }
+
 
     /**
      * 设置垂直高度倍数
      * @param value
      */
     setExaggeration (value) {
-        if (this.volume && this.scene) {
-            this.parameters.exaggeration = value;
-            const bounds = {
-                minX: this.volume.minLongitude,
-                minY: this.volume.minLatitude,
-                maxX: this.volume.maxLongitude,
-                maxY: this.volume.maxLatitude,
-            };
+        // this.mesh.scale.z = this.mesh.scale.z * value;
 
-            this.setScenePosition(this.scene, bounds, this.volume.depth * this.volume.cutHeight * this.parameters.exaggeration);
-        }
+        this.scene.children.forEach(mesh => {
+            if (mesh.material.uniforms) {
+                mesh.scale.z = mesh.scale.z * value;
+            }
+        })
     }
 
     /***
      * 设置色卡
      * @param value
      */
-
-    colorTypeChange (colorType) {
-        this.setColorMap(colorType);
+    setColorMap (value) {
+        this.parameters.colorMap = value
+        const texture = this.colorMapTexture[this.parameters.colorMap]
+        if (texture) {
+            this.scene.children.forEach(mesh => {
+                if (mesh.material.uniforms) {
+                    mesh.material.uniforms.colorMap.value = texture;
+                }
+            })
+        } else {
+            console.warn('this texture not exist')
+        }
     }
 
     /***
@@ -244,9 +276,11 @@ export default class VoxelRender extends BaseModel{
      * @param value
      */
     setBrightness (value) {
-        if (this.isLoaded) {
-            this.material.uniforms.brightness.value = value;
-        }
+        this.scene.children.forEach(mesh => {
+            if (mesh.material.uniforms) {
+                mesh.material.uniforms.brightness.value = value;
+            }
+        })
     }
 
     /***
@@ -254,9 +288,11 @@ export default class VoxelRender extends BaseModel{
      * @param value
      */
     setDepthSampleCount (value) {
-        if (this.isLoaded) {
-            this.material.uniforms.depthSampleCount.value = value;
-        }
+        this.scene.children.forEach(mesh => {
+            if (mesh.material.uniforms) {
+                mesh.material.uniforms.depthSampleCount.value = value;
+            }
+        })
     }
 
     /***
@@ -264,15 +300,19 @@ export default class VoxelRender extends BaseModel{
      * @param value
      */
     setThreshold (value) {
-        if (this.isLoaded) {
-            this.material.uniforms.threshold.value = value;
-        }
+        this.scene.children.forEach(mesh => {
+            if (mesh.material.uniforms) {
+                mesh.material.uniforms.threshold0.value = value;
+            }
+        })
     }
 
     setThreshold1 (value) {
-        if (this.isLoaded) {
-            this.material.uniforms.threshold1.value = value;
-        }
+        this.scene.children.forEach(mesh => {
+            if (mesh.material.uniforms) {
+                mesh.material.uniforms.threshold.value = value;
+            }
+        })
     }
 
     /***
@@ -280,20 +320,18 @@ export default class VoxelRender extends BaseModel{
      * @param value
      */
     setColorRange (value) {
-        if (this.isLoaded) {
-            this.material.uniforms.rangeColor1.value = value[0];
-            this.material.uniforms.rangeColor2.value = value[1];
-        }
+        this.scene.children.forEach(mesh => {
+            if (mesh.material.uniforms) {
+                mesh.material.uniforms.rangeColor1.value = value[0];
+                mesh.material.uniforms.rangeColor2.value = value[1];
+            }
+        })
     }
 
     showLayer (show) {
-        console.log('showLayer', show);
-        this.parameters.show = show;
         if(this.renderer) {
             this.renderer.domElement.style.display = show ? 'block' : 'none';
         }
-
-        this.css2AxesSystem.show(show);
     }
 
     drawLayer () {
@@ -302,33 +340,32 @@ export default class VoxelRender extends BaseModel{
             type: 'custom',
             renderingMode: '3d',
             onAdd: (map, gl) => {
+                window.mapIns = this.map = map;
                 this.initCanvas(map, gl);
-                this.map.on('resize', this.resizeBind)
             },
 
             render: (gl, matrix) => {
                 const { renderer, scene, camera } = this;
 
-                const translateScaleMatrix = new THREE.Matrix4()
-                    .makeTranslation(0, 0, 0)
-                    .scale(new THREE.Vector3(1, 1, 1));
 
-                camera.projectionMatrix = new THREE.Matrix4().fromArray(matrix).multiply(translateScaleMatrix);
+                camera.projectionMatrix = new THREE.Matrix4().fromArray(matrix)
 
-                if (this.mesh && this.mesh.material.uniforms && this.mesh.material.uniforms.cameraPosition) {
-                    const camera = this.map.getFreeCameraOptions();
+                this.scene.children.forEach(mesh => {
 
-                    const cameraPosition = camera._position
+                    if (mesh && mesh.material.uniforms && mesh.material.uniforms.cameraPosition) {
+                        const camera = this.map.getFreeCameraOptions();
 
-                    this.mesh.material.uniforms.cameraPosition.value.copy( { x: cameraPosition.x, y: cameraPosition.y, z: cameraPosition.z } );
-                }
+                        const cameraPosition = camera._position
+
+                        mesh.material.uniforms.cameraPosition.value.copy( { x: cameraPosition.x, y: cameraPosition.y, z: cameraPosition.z } );
+                    }
+
+                })
 
                  if (renderer) {
                     renderer.resetState();
                     renderer.render(scene, camera);
                 }
-
-                this.css2AxesSystem.css2DRenderer.render( scene, camera )
 
                 if (this.map) {
                     this.map.triggerRepaint();
@@ -337,9 +374,7 @@ export default class VoxelRender extends BaseModel{
 
 
             onRemove: () => {
-                console.log('onRemove')
-                this.cleanScene();
-                this.map.off('resize', this.resizeBind)
+                this.clearScene();
             }
         };
 
@@ -348,16 +383,74 @@ export default class VoxelRender extends BaseModel{
         }
     }
 
+    clearScene() {
+        if (this.scene && this.scene.children.length > 0) {
+            this.scene.children.forEach(mesh => {
+                if (mesh) {
+                    if (mesh.material && mesh.material.uniforms) {
+                        if (mesh.material.uniforms.tex.value) {
+                            mesh.material.uniforms.tex.value.dispose();
+                            mesh.material.uniforms.tex.value.source.data = null;
+                            mesh.material.uniforms.tex.value.source = null;
+                        }
+                        mesh.material.uniforms.tex.value = null;
+                    }
+
+                    if (mesh.material) {
+                        mesh.material.dispose();
+                    }
+
+                    if (mesh.geometry) {
+                        mesh.geometry.dispose();
+                    }
+                    mesh = null;
+                }
+            })
+            this.scene.children = [];
+        }
+
+        if (this.volume) {
+            delete this.volume.data;
+            this.volume = null;
+        }
+    }
+
+    // ==========================
+    removeLayer () {
+        if (this.map && this.map.getLayer(this.id)) {
+            this.map.removeLayer(this.id)
+        }
+    }
 
     /**
      * 清除
      */
 
     destroy () {
-        super.destroy();
+        this.isDispose = true;
+
+        this.removeLayer()
+
+        if (this.renderer) {
+            this.renderer.domElement.remove();
+            this.renderer.dispose();
+        }
+
+        if (this.gui) {
+            this.gui.domElement.remove()
+        }
+
+        this.id = null;
+        this.map = null;
+
+        this.renderer = null;
+
+        this.camera = null;
+        this.scene = null;
     }
 
     dispose () {
         this.destroy()
     }
+
 }

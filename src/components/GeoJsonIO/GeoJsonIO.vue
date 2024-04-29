@@ -4,7 +4,7 @@
     </div>
     <div class="file-modal" v-show="showModal"></div>
     <ContentArea 
-        :fileLayerList="fileLayerList" 
+        :fileInfoList="fileInfoList" 
         @removeItemClick="removeItemClick"
         @draggableSortChange="draggableSortChange"
         ></ContentArea>
@@ -26,6 +26,8 @@ import VoxelRender  from '../../core/mapbox/model/VoxelRender/VoxelRender';
 
 import { VoxelFormat } from '../../core/parseFile/Voxel/VoxelFormat';
 
+import { throttle, debounce } from 'lodash';
+
 const center = ref([104.1465432836781, 30.857102559661133]);
 
 const showModal = ref(false);
@@ -40,12 +42,12 @@ const mapboxGLLoadedFunc = (map) => {
 
 let dft;
 
-const fileLayerList = ref([]);
+const fileInfoList = ref([]);
 
-const createFileLayer = (mapLayer, fd) => {
+const createFileInfo = (instance, fd) => {
     return {
         fd: fd,
-        layer: toRaw(mapLayer),
+        instance: toRaw(instance),
         status: {
             showLayer: true,
             openEditor: false
@@ -53,19 +55,25 @@ const createFileLayer = (mapLayer, fd) => {
     }
 }
 
-const addFileLayer = (layer, fd) => {
-    fileLayerList.value.push(createFileLayer(layer, fd));
+const addFileInfo = (instance, fd) => {
+    fileInfoList.value.push(createFileInfo(instance, fd));
 }
 
-const removeFileLayer = (fileLayer) => {
-    const index = fileLayerList.value.findIndex(lay => lay === fileLayer);
-    fileLayerList.value.splice(index, 1);
-    fileLayer.layer.removeLayer();
+const removeFileInfo = (fileInfo) => {
+    const index = fileInfoList.value.findIndex(info => info === fileInfo);
+
+    fileInfoList.value.splice(index, 1);
+    
+    if (fileInfo.instance.isThree) {
+        fileInfo.instance.removeData(fileInfo.fd.id);
+    } else {
+        fileInfo.instance.removeLayer();
+    }
+
 }
 
-const moveLayer = (id, beforeId) => {
+const moveFileInfo = (id, beforeId) => {
     const map = window.mapIns;
-    let _beforeId = beforeId;
     if (map) {
         const layers = map.getStyle().layers;
         const index = layers.findIndex(layer => layer.id === id);
@@ -79,11 +87,11 @@ const moveLayer = (id, beforeId) => {
 }
 
 const removeItemClick = (layer) => {
-    removeFileLayer(layer);
+    removeFileInfo(layer);
 }
 
 const draggableSortChange = ({ id, beforeId }) => {
-    moveLayer(id, beforeId);
+    moveFileInfo(id, beforeId);
 }   
 
 const addMapboxLayer = (map) => {
@@ -102,21 +110,27 @@ const addMapboxLayer = (map) => {
 
         const shapeType = type.toLocaleLowerCase();
         
-        let fileLayer;
+        let fileInfo;
         if (shapeType === 'point') {
-            fileLayer = new CircleStyleClass(fd.name, map, geojson);
+            fileInfo = new CircleStyleClass(fd.name, map, geojson);
         } else if (shapeType.includes('line')) {
-            fileLayer = new LineStyleClass(fd.name, map, geojson);
+            fileInfo = new LineStyleClass(fd.name, map, geojson);
         } else if (shapeType.includes('poly')) {
-            fileLayer= new FillStyleClass(fd.name, map, geojson);
+            fileInfo= new FillStyleClass(fd.name, map, geojson);
         }
 
-        fileLayer.addLayer();
+        fileInfo.addLayer();
 
-        addFileLayer(fileLayer, fd);
+        addFileInfo(fileInfo, fd);
 
         zoomextent(map, geojson);
     })
+
+    let voxelRender;
+    let bbox = [];
+    const _fitBounds =  throttle((map, bbox) => {
+        map.fitBounds(bbox, { padding: 50, duration: 1000 } );
+    }, 1000)
 
     dft.on('zip-data', (data) => {
         console.log('zip-data ==>', data);
@@ -126,6 +140,7 @@ const addMapboxLayer = (map) => {
         console.log('VoxelFormat ==>', instance);
 
         const volume = {
+            id: 'voxel-'+Date.now(),
             minLongitude: instance.header.leftLongitude / 10000,
             minLatitude: instance.header.bottomLatitude / 10000,
             maxLongitude: instance.header.rightLongitude / 10000,
@@ -137,23 +152,26 @@ const addMapboxLayer = (map) => {
             cutHeight: 500
         }
         console.log('volume ==>', volume)
-        const voxelRender = new VoxelRender(fd.name + '-' + fd.size, map);
-        voxelRender.render(volume);
+        if (!voxelRender || voxelRender.isDispose) {
+            voxelRender = new VoxelRender(fd.name + '-' + fd.size, map);
+        }
+        voxelRender.addData(volume);
 
-        addFileLayer(voxelRender, fd);
+        fd.id = volume.id;
 
-        map.fitBounds(
-            [
-                volume.minLongitude, 
-                volume.minLatitude, 
-                volume.maxLongitude, 
-                volume.maxLatitude
-            ], 
-            {
-                padding: 50,
-                duration: 1000
-            }
-        );
+        addFileInfo(voxelRender, fd);
+
+        // map.fitBounds(
+        //     [ volume.minLongitude, volume.minLatitude, volume.maxLongitude, volume.maxLatitude ], 
+        //     { padding: 50, duration: 1000 }
+        // );
+
+        bbox[0] = volume.minLongitude;
+        bbox[1] = volume.minLatitude;
+        bbox[2] = volume.maxLongitude;
+        bbox[3] = volume.maxLatitude;
+
+        _fitBounds(map, bbox);
     })
 
     dft.on('drag-enter', () => { showModal.value = true })
