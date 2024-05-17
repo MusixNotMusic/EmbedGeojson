@@ -224,8 +224,8 @@ import { colors, getColorSystem, getResourceCache } from '../constants'
     }
 
     setScenePosition (scene, bounds) {
-        const min = mapboxgl.MercatorCoordinate.fromLngLat([bounds.minX, bounds.minY], 0);
-        const max = mapboxgl.MercatorCoordinate.fromLngLat([bounds.maxX, bounds.maxY], this.altitude || 80000);
+        const min = mapboxgl.MercatorCoordinate.fromLngLat([bounds.minX, bounds.maxY], 0);
+        const max = mapboxgl.MercatorCoordinate.fromLngLat([bounds.maxX, bounds.minY], this.altitude || 80000);
 
         const boundScaleBox = [  min.x, min.y, min.z, max.x, max.y, max.z ];
 
@@ -331,6 +331,20 @@ import { colors, getColorSystem, getResourceCache } from '../constants'
     showLayer (show) {
         if(this.renderer) {
             this.renderer.domElement.style.display = show ? 'block' : 'none';
+        }
+    }
+
+    showMesh (show, name) {
+        if(this.renderer) {
+            const meshs = this.scene.getObjectsByProperty('name', name);
+            const meshEdges = this.scene.getObjectsByProperty('name', name + '-edges');
+            meshs.forEach(mesh => {
+                mesh.visible = show;
+            })
+
+            meshEdges.forEach(mesh => {
+                mesh.visible = show;
+            })
         }
     }
 

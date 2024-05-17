@@ -45,8 +45,8 @@ float latMercatorNormalize (float lat) {
 }
 
 float sample1( vec3 p ) {
-    // p.x = (latMercatorNormalize(maxLat) - latMercatorNormalize(minLat + p.x * (maxLat - minLat))) / (latMercatorNormalize(maxLat) - latMercatorNormalize(minLat));
-    // p.x = p.x - 0.1;
+    // p.y = (latMercatorNormalize(maxLat) - latMercatorNormalize(minLat + p.y * (maxLat - minLat))) / (latMercatorNormalize(maxLat) - latMercatorNormalize(minLat));
+    p.y = (latMercatorNormalize(minLat + p.y * (maxLat - minLat)) - latMercatorNormalize(minLat)) / (latMercatorNormalize(maxLat) - latMercatorNormalize(minLat));
     return texture( tex, p ).r;
 }
 
@@ -108,7 +108,9 @@ void main(){
     
 
     vec4 colorMax = colorSimple(maxVal);
-    vec3 colorW = sumColor.rgb / sumA;
+    
+    vec3 colorW = min(sumColor.rgb / sumA, pxColor.rgb);
+    // vec3 colorW = sumColor.rgb / sumA;
     float avgA = sumA / n;
     float u = pow(1.0 - avgA, n);
         if (maxVal > 0.2) {
@@ -133,12 +135,6 @@ void main(){
 
         pxColor.a = pow( avgA, 1.0/ 2.5 );
     } 
-
-
-    // if (length(p.xy - vec2(-0.5)) < 0.01) pxColor = vec4(1.0, 0.0, 0.0, 1.0);
-    // if (length(p.xy - vec2(-0.5, -0.4)) < 0.01) pxColor = vec4(1.0, 0.0, 0.0, 1.0);
-    // if (length(p.xy - vec2(-0.4)) < 0.01) pxColor = vec4(1.0, 0.0, 0.0, 1.0);
-
 
     color = pxColor * brightness;
 

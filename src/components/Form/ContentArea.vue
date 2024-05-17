@@ -48,6 +48,10 @@ export default {
             if (layer) {
                 layer.showLayer(show);
             }
+
+            if (fileItem.instance) {
+                fileItem.instance.showMesh(show, fileItem.fd.id);
+            }
         }
 
         const currentFile = ref(null);
