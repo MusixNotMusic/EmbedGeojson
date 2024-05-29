@@ -25,6 +25,7 @@ import { LineStyleClass } from '../../core/mapbox/styles/line';
 import VoxelRender  from '../../core/mapbox/model/VoxelRender/VoxelRender';
 
 import { VoxelFormat } from '../../core/parseFile/Voxel/VoxelFormat';
+import { RtdpzFormat } from '../../core/parseFile/Voxel/RtdpzFormat';
 
 import { throttle, debounce } from 'lodash';
 
@@ -161,10 +162,43 @@ const addMapboxLayer = (map) => {
 
         addFileInfo(voxelRender, fd);
 
-        // map.fitBounds(
-        //     [ volume.minLongitude, volume.minLatitude, volume.maxLongitude, volume.maxLatitude ], 
-        //     { padding: 50, duration: 1000 }
-        // );
+        bbox[0] = volume.minLongitude;
+        bbox[1] = volume.minLatitude;
+        bbox[2] = volume.maxLongitude;
+        bbox[3] = volume.maxLatitude;
+
+        _fitBounds(map, bbox);
+    })
+
+
+    dft.on('rtdpz', (data) => {
+        console.log('rtdpz ==>', data);
+        const fd = data.fd;
+
+        const instance = RtdpzFormat.parser(data.data);
+        console.log('RtdpzFormat ==>', instance);
+
+        const volume = {
+            id: 'rtdpz-'+Date.now(),
+            minLongitude: instance.header.minLongitude / 360000,
+            minLatitude: instance.header.minLatitude / 360000,
+            maxLongitude: instance.header.maxLongitude / 360000,
+            maxLatitude: instance.header.maxLatitude / 360000,
+            data:   instance.data,
+            width:  instance.header.width,
+            height: instance.header.height,
+            depth:  instance.header.depth,
+            cutHeight: instance.header.cutHeight
+        }
+        console.log('volume ==>', volume)
+        if (!voxelRender || voxelRender.isDispose) {
+            voxelRender = new VoxelRender(fd.name + '-' + fd.size, map);
+        }
+        voxelRender.addData(volume);
+
+        fd.id = volume.id;
+
+        addFileInfo(voxelRender, fd);
 
         bbox[0] = volume.minLongitude;
         bbox[1] = volume.minLatitude;

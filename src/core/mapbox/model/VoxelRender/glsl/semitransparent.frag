@@ -101,8 +101,6 @@ void main(){
         p += rayDir * delta;
     }
 
-    if(maxVal < 0.01 || maxVal > 0.99) discard;
-
 
     pxColor = colorSimple(maxVal);
     
@@ -117,21 +115,12 @@ void main(){
         pxColor.rgb  = u * colorW + (1.0 - u) * colorMax.rgb;
 
         float z = p.z + 0.5;
-        // if (z >= minAlt && z <= maxAlt ) {
-        //     pxColor.a = pow( avgA, 1.0/ 3.3 );
-        // } else {
-        //     pxColor.a = 0.3;
-        // }
+      
         pxColor.a = pow( avgA, 1.0/ 3.3 );
     } else {
         pxColor.rgb  = (1.0 - u) * colorW + u * colorMax.rgb;
 
         float z = p.z + 0.5;
-        // if (z >= minAlt && z <= maxAlt ) {
-        //     pxColor.a = pow( avgA, 1.0/ 2.5 );
-        // } else {
-        //     pxColor.a = 0.3;
-        // }
 
         pxColor.a = pow( avgA, 1.0/ 2.5 );
     } 

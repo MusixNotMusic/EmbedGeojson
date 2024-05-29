@@ -37,10 +37,13 @@ export class DropFileTransfer extends EventEmitter  {
             event.dataTransfer.files.length) {
             [...event.dataTransfer.files].forEach(fd => {
                 readFileData(fd).then((data) => {
+                    console.log('data ==>', data);
                     if (data.type === 'geojson') {
                         this.emit('geojson-data', data);
-                    } else if(data.type === 'zip') {
+                    } else if(data.type === 'z') {
                         this.emit('zip-data', data);
+                    } else if(data.type === 'rtdpz') {
+                        this.emit('rtdpz', data);
                     }
                 }).catch(e => {
                     this.emit('error', e);

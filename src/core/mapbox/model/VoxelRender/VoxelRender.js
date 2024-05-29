@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min'
+import Stats from 'three/examples/jsm/libs/stats.module'
 import { isEmpty, defaultsDeep, cloneDeep } from 'lodash'
 import mapboxgl from 'mapbox-gl'
 import vertexShader from './glsl/vertex.vert';
@@ -59,7 +60,8 @@ import { colors, getColorSystem, getResourceCache } from '../constants'
 
         this.colorNames = colors.map(color => { return color.name })
 
-        this.initGui()
+        this.initGui();
+
         window.VolumeRender = this;
     }
 
@@ -75,7 +77,13 @@ import { colors, getColorSystem, getResourceCache } from '../constants'
         gui.add( this.parameters, 'threshold', 0, 1, 0.01 ).onChange( updateUniforms );
         gui.add( this.parameters, 'depthSampleCount', 0, 512, 1 ).onChange( updateUniforms );
         gui.add( this.parameters, 'brightness', 0, 7, 0.1 ).onChange( updateUniforms );
+
+        this.stats = new Stats();
+        this.stats.dom.style.position = '';
+        this.stats.showPanel( 0 );
+        gui.domElement.append(this.stats.dom );
     }
+    
 
     updateUniforms() {
 
@@ -217,6 +225,8 @@ import { colors, getColorSystem, getResourceCache } from '../constants'
             maxY: volume.maxLatitude,
         };
 
+        this.altitude = volume.cutHeight * volume.depth;
+
         this.setScenePosition(mesh, bounds);
         this.setScenePosition(meshHL, bounds);
 
@@ -348,6 +358,10 @@ import { colors, getColorSystem, getResourceCache } from '../constants'
         }
     }
 
+    showGUI(show) {
+        this.gui.show(show);
+    }
+
     drawLayer () {
         const customLayer = {
             id: this.id,
@@ -379,6 +393,10 @@ import { colors, getColorSystem, getResourceCache } from '../constants'
                  if (renderer) {
                     renderer.resetState();
                     renderer.render(scene, camera);
+                }
+
+                if(this.stats) {
+                    this.stats.update();
                 }
 
                 if (this.map) {
@@ -451,7 +469,7 @@ import { colors, getColorSystem, getResourceCache } from '../constants'
         }
 
         if (this.gui) {
-            this.gui.domElement.remove()
+            this.gui.destroy();
         }
 
         this.id = null;

@@ -24,7 +24,7 @@
             </div>
         </draggable>
     </div>
-    <Dialog v-if="currentFile && currentFile.status.openEditor" :file="currentFile" :show="currentFile.status.openEditor"></Dialog>
+    <Dialog v-if="currentFile && currentFile.status.openEditor && currentFile.status.layer" :file="currentFile" :show="currentFile.status.openEditor"></Dialog>
 </template>
 <script>
 import { ref } from 'vue';
@@ -64,8 +64,13 @@ export default {
                 fileItem.status.openEditor = !fileItem.status.openEditor;
                 if (fileItem.status.openEditor) {
                     currentFile.value = fileItem;
+                    fileItem.instance.showGUI()
                 } else {
                     currentFile.value = null;
+                }
+
+                if(fileItem.instance) {
+                    fileItem.instance.showGUI(fileItem.status.openEditor);
                 }
             }, 100)
         }

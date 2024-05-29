@@ -6,10 +6,20 @@ export function wrapGeojsonData(fd, data) {
     }
 }
 
-export function wrapZipData(fd, data) {
+export function wrapZipData(fd, data, suffix) {
+    console.log('wrapZipData ==>', fd, data, suffix);
+    let type = 'zip';
+    const isRtdpz = fd.name.includes('rtdpz');
+
+    if (isRtdpz) {
+        type = 'rtdpz';
+    } else {
+        type = suffix || type;
+    }
+
     return {
         fd: fd,
-        type: 'zip',
+        type: type,
         data: data
     }
 }

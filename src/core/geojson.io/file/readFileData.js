@@ -33,9 +33,9 @@ export function readFileData (fd) {
             case 'dsv':     return readAsText(fd).then(readCsv).then(data => { return wrapGeojsonData(fd, data.data); }); break;
             case 'poly':    return readAsText(fd).then(readPloy).then(data => { return wrapGeojsonData(fd, data.data); }); break;
             case 'shp':     return readAsArrayBuffer(fd).then(readShape).then(data => { return wrapGeojsonData(fd, data.data); }); break;
-            case 'z':       return readAsArrayBuffer(fd).then(decompress).then(data => { return wrapZipData(fd, data); }); break;
-            case 'zip':     return readAsArrayBuffer(fd).then(decompress).then(data => { return wrapZipData(fd, data); }); break;
-            case 'zstd':    return readAsArrayBuffer(fd).then(decompress).then(data => { return wrapZipData(fd, data); }); break;
+            case 'z':       return readAsArrayBuffer(fd).then(decompress).then(data => { return wrapZipData(fd, data, fileName); }); break;
+            case 'zip':     return readAsArrayBuffer(fd).then(decompress).then(data => { return wrapZipData(fd, data, fileName); }); break;
+            case 'zstd':    return readAsArrayBuffer(fd).then(decompress).then(data => { return wrapZipData(fd, data, fileName); }); break;
         }
     } else if (fileType) {
         switch(fileType) {
