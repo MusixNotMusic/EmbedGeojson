@@ -11,7 +11,7 @@
                     <div class="content-item-editor">
                         <el-icon @click="editClickHandle(file)"><Edit class="pointer"/></el-icon>
                     </div>
-                    <div class="content-item-view-layer">
+                    <div class="content-item-view-instance">
                         <el-icon class="pointer" @click="showLayerClickHandle(file)">
                             <View v-if="file.status.showLayer" />
                             <Hide v-if="!file.status.showLayer"/>
@@ -24,7 +24,7 @@
             </div>
         </draggable>
     </div>
-    <Dialog v-if="currentFile && currentFile.status.openEditor && currentFile.status.layer" :file="currentFile" :show="currentFile.status.openEditor"></Dialog>
+    <Dialog v-if="currentFile && currentFile.status.openEditor" :file="currentFile" :show="currentFile.status.openEditor"></Dialog>
 </template>
 <script>
 import { ref } from 'vue';
@@ -42,11 +42,11 @@ export default {
     emits: ['removeItemClick', 'draggableSortChange'],
     setup (props, { emit }) {
         const showLayerClickHandle = (fileItem) => {
-            const layer = fileItem.layer;
+            const instance = fileItem.instance;
             fileItem.status.showLayer = !fileItem.status.showLayer;
             const show = fileItem.status.showLayer;
-            if (layer) {
-                layer.showLayer(show);
+            if (instance) {
+                instance.showLayer(show);
             }
 
             if (fileItem.instance) {
@@ -64,12 +64,11 @@ export default {
                 fileItem.status.openEditor = !fileItem.status.openEditor;
                 if (fileItem.status.openEditor) {
                     currentFile.value = fileItem;
-                    fileItem.instance.showGUI()
                 } else {
                     currentFile.value = null;
                 }
 
-                if(fileItem.instance) {
+                if(fileItem.instance.showGUI) {
                     fileItem.instance.showGUI(fileItem.status.openEditor);
                 }
             }, 100)
@@ -82,8 +81,8 @@ export default {
         const draggableSortChange = (event) => {
             // console.log('draggableSortChange', event)
             const size = props.fileInfoList.length;
-            const id = props.fileInfoList[event.moved.newIndex].layer.id;
-            const beforeId = event.moved.newIndex + 1 < size ?  props.fileInfoList[event.moved.newIndex + 1].layer.id : null;
+            const id = props.fileInfoList[event.moved.newIndex].instance.id;
+            const beforeId = event.moved.newIndex + 1 < size ?  props.fileInfoList[event.moved.newIndex + 1].instance.id : null;
 
             emit('draggableSortChange', { id, beforeId })
         }
@@ -131,6 +130,9 @@ export default {
             font-size: 14px;
 
             user-select: none;
+
+            color: #213547;
+
 
             .content-item-name {
                 display: flex;

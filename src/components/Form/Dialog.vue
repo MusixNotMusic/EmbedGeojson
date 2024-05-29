@@ -54,15 +54,15 @@ export default {
     setup (props) {
 
         if (!props.file.paramsList) {
-            props.file.paramsList = identifyFormType(cloneDeep(props.file.layer.paramsTable));
+            props.file.paramsList = identifyFormType(cloneDeep(props.file.instance.paramsTable));
         }
         
         const showLayerClickHandle = (fileItem) => {
-            const layer = fileItem.layer;
+            const instance = fileItem.instance;
             fileItem.status.showLayer = !fileItem.status.showLayer;
             const show = fileItem.status.showLayer;
-            if (layer) {
-                layer.showLayer(show);
+            if (instance) {
+                instance.showLayer(show);
             }
         }
 
@@ -81,8 +81,8 @@ export default {
 
 
             if (props.file) {
-                const layer = props.file.layer;
-                layer[toCamelCase('set-'+name)].bind(layer)(value);
+                const instance = props.file.instance;
+                instance[toCamelCase('set-'+name)].bind(instance)(value);
             }
 
         }
