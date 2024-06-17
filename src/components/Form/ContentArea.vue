@@ -68,9 +68,9 @@ export default {
                     currentFile.value = null;
                 }
 
-                if(fileItem.instance.showGUI) {
-                    fileItem.instance.showGUI(fileItem.status.openEditor);
-                }
+                // if(fileItem.instance.showGUI) {
+                //     fileItem.instance.showGUI(fileItem.status.openEditor);
+                // }
             }, 100)
         }
 

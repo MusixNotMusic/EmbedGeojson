@@ -4,38 +4,41 @@
             <span>{{ file.fd.name }}</span>
             <el-icon @click="closeClickHandle" class="pointer"><Close></Close></el-icon>
         </div>
-        <div class="dialog-item" v-for="(params, index) in file.paramsList" :key="index">
-            <div class="dialog-item-name">
-                <span>{{ params.i18n }}：</span>
+        <template v-if="file.paramsList && file.paramsList.length > 0">
+            <div class="dialog-item" v-for="(params, index) in file.paramsList" :key="index">
+                <div class="dialog-item-name">
+                    <span>{{ params.i18n }}：</span>
+                </div>
+                <div class="dialog-item-value">
+                    <div v-if="params.formType === 'slider'">
+                        <el-slider v-model="params.value" 
+                            :min="params.min" 
+                            :max="params.max" 
+                            :step="params.step"
+                            @change="updateMapLayerChange(params)"></el-slider>
+                    </div>
+
+                    <div class="dialog-item-start" v-if="params.formType === 'colorPicker'">
+                        <el-color-picker v-model="params.value" show-alpha  @change="updateMapLayerChange(params)"/>
+                    </div>
+
+                    <div class="dialog-item-start" v-if="params.formType === 'input'">
+                        <el-input v-model="params.value"  :type="params.inputType"  @change="updateMapLayerChange(params)"/>
+                    </div>
+
+                    <div class="dialog-item-start" v-if="params.formType === 'inputNumber'">
+                        <el-input-number v-model="params.value" :min="params.min" :max="params.max"  @change="updateMapLayerChange(params)"/>
+                    </div>
+
+                    <div class="dialog-item-start" v-if="params.formType === 'select'">
+                        <el-select v-model="params.value" @change="updateMapLayerChange(params)">
+                            <el-option v-for="item in params.list" :key="item.value" :label="item.name" :value="item"></el-option>
+                        </el-select>
+                    </div>
+                </div>
             </div>
-            <div class="dialog-item-value">
-                <div v-if="params.formType === 'slider'">
-                    <el-slider v-model="params.value" 
-                        :min="params.min" 
-                        :max="params.max" 
-                        :step="params.step"
-                        @change="updateMapLayerChange(params)"></el-slider>
-                </div>
-
-                <div class="dialog-item-start" v-if="params.formType === 'colorPicker'">
-                    <el-color-picker v-model="params.value" show-alpha  @change="updateMapLayerChange(params)"/>
-                </div>
-
-                <div class="dialog-item-start" v-if="params.formType === 'input'">
-                    <el-input v-model="params.value"  :type="params.inputType"  @change="updateMapLayerChange(params)"/>
-                </div>
-
-                <div class="dialog-item-start" v-if="params.formType === 'inputNumber'">
-                    <el-input-number v-model="params.value" :min="params.min" :max="params.max"  @change="updateMapLayerChange(params)"/>
-                </div>
-
-                <div class="dialog-item-start" v-if="params.formType === 'select'">
-                    <el-select v-model="params.value" @change="updateMapLayerChange(params)">
-                        <el-option v-for="item in params.list" :key="item.value" :label="item.name" :value="item"></el-option>
-                    </el-select>
-                </div>
-            </div>
-        </div>
+        </template>
+        <div class="dialog-content" ref="dialogItemRef"></div>
     </div>
    
 </template>
@@ -43,6 +46,7 @@
 import { cloneDeep, isObject } from 'lodash';
 import { identifyFormType } from './form';
 import { toCamelCase } from '../../core/mapbox/utils';
+import { onMounted, onUnmounted, ref } from 'vue';
 export default {
     name: 'Dialog',
     props: {
@@ -52,6 +56,7 @@ export default {
         }
     },
     setup (props) {
+        const dialogItemRef = ref(null);
 
         if (!props.file.paramsList) {
             props.file.paramsList = identifyFormType(cloneDeep(props.file.instance.paramsTable));
@@ -87,8 +92,32 @@ export default {
 
         }
 
+        onMounted(() => {
+            if(props.file.instance.showGUI) {
+                props.file.instance.showGUI(props.file.status.openEditor);
+            }
+
+            if(dialogItemRef.value) {
+                const instance = props.file.instance;
+                instance.gui.domElement.style.position = 'unset';
+                dialogItemRef.value.append(instance.gui.domElement);
+            }
+        })
+
+        onUnmounted(() => {
+            if(props.file.instance.showGUI) {
+                props.file.instance.showGUI(false);
+            }
+
+            if(dialogItemRef.value) {
+                const instance = props.file.instance;
+                dialogItemRef.value.remove(instance.gui.domElement);
+            }
+        })
+
         return {
             // paramsList,
+            dialogItemRef,
             showLayerClickHandle,
             closeClickHandle,
             updateMapLayerChange
@@ -176,5 +205,17 @@ export default {
 
     ::v-deep(.el-color-picker__trigger) {
         width: 100px;
+    }
+
+    .dialog-content {
+        display: flex;
+        align-items: center;
+        padding: 0px 20px 0px 20px;
+        column-gap: 5px;
+        font-size: 14px;
+
+        user-select: none;
+
+        margin-bottom: 5px;
     }
 </style>

@@ -25,12 +25,14 @@ export const table = {
 
 export function identifyFormType(paramsList) {
     const list = [];
-    paramsList.forEach(param => {
-        const formType = cloneDeep(table[param.name]);
-        if (formType) {
-            Object.assign(formType, param);
-            list.push(formType)
-        }
-    })
+    if (Array.isArray(paramsList)) {
+        paramsList.forEach(param => {
+            const formType = cloneDeep(table[param.name]);
+            if (formType) {
+                Object.assign(formType, param);
+                list.push(formType)
+            }
+        })
+    }
     return list;
 }
