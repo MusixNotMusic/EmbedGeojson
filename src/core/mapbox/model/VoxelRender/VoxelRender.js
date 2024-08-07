@@ -60,6 +60,8 @@ import { colors, getColorSystem, getResourceCache } from '../constants'
 
         this.colorNames = colors.map(color => { return color.name })
 
+        this.scaleZ = 1;
+
         this.initGui();
 
         window.VolumeRender = this;
@@ -71,12 +73,14 @@ import { colors, getColorSystem, getResourceCache } from '../constants'
         this.gui = gui;
         this.gui.show(false);
         const updateUniforms = this.updateUniforms.bind(this);
+        const setExaggerationBind = this.setExaggeration.bind(this)
 
         gui.add( this.parameters, 'colorMap', this.colorNames ).onChange( updateUniforms );
         gui.add( this.parameters, 'threshold0', 0, 1, 0.01 ).onChange( updateUniforms );
         gui.add( this.parameters, 'threshold', 0, 1, 0.01 ).onChange( updateUniforms );
         gui.add( this.parameters, 'depthSampleCount', 0, 512, 1 ).onChange( updateUniforms );
         gui.add( this.parameters, 'brightness', 0, 7, 0.1 ).onChange( updateUniforms );
+        gui.add( this.parameters, 'exaggeration', 0, 20, 1 ).onChange( setExaggerationBind );
 
         this.stats = new Stats();
         this.stats.dom.style.position = '';
@@ -246,6 +250,9 @@ import { colors, getColorSystem, getResourceCache } from '../constants'
         scene.scale.x = (boundScaleBox[3] - boundScaleBox[0]);
         scene.scale.y = (boundScaleBox[4] - boundScaleBox[1]);
         scene.scale.z = (boundScaleBox[5] - boundScaleBox[2]);
+
+        this.scaleZ = scene.scale.z;
+        this.positionZ = scene.position.z;
     }
 
 
@@ -257,10 +264,12 @@ import { colors, getColorSystem, getResourceCache } from '../constants'
         // this.mesh.scale.z = this.mesh.scale.z * value;
 
         this.scene.children.forEach(mesh => {
-            if (mesh.material.uniforms) {
-                mesh.scale.z = mesh.scale.z * value;
+            if (mesh.material.uniforms || mesh.isLineSegments) {
+                mesh.scale.z = this.scaleZ * value;
+                mesh.position.z = this.positionZ * value;
             }
         })
+
     }
 
     /***
