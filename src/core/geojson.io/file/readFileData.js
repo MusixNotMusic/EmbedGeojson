@@ -36,6 +36,7 @@ export function readFileData (fd) {
             case 'z':       return readAsArrayBuffer(fd).then(decompress).then(data => { return wrapZipData(fd, data, fileName); }); break;
             case 'zip':     return readAsArrayBuffer(fd).then(decompress).then(data => { return wrapZipData(fd, data, fileName); }); break;
             case 'zstd':    return readAsArrayBuffer(fd).then(decompress).then(data => { return wrapZipData(fd, data, fileName); }); break;
+            case 'mcappi':  return readAsArrayBuffer(fd).then(decompress).then(data => { return wrapZipData(fd, data, fileName); }); break;
         }
     } else if (fileType) {
         switch(fileType) {

@@ -28,6 +28,7 @@ export const fileNameRuleList = [
     { name: 'z',            ext: '.z',        returnType: 'z',         type: '',  description: 'zip or zstd file' },
     { name: 'zip',          ext: '.zip',      returnType: 'zip',       type: '',  description: 'zip file' },
     { name: 'zstd',         ext: '.zstd',     returnType: 'zstd',      type: '',  description: 'zstd file' },
+    { name: 'mcappi',       ext: '.mcappi',   returnType: 'mcappi',    type: '',  description: 'mcappi file' },
 ]
 
 export const fileContentRuleList = [

@@ -37,7 +37,7 @@ import { colors, getColorSystem, getResourceCache } from '../constants'
             threshold:  1.0,
             depthSampleCount: 128,
             brightness: 1.0,
-            exaggeration: 1
+            exaggeration: 10
         };
 
         this.colorMapTexture = getColorSystem().colorMapTexture;

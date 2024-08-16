@@ -44,6 +44,8 @@ export class DropFileTransfer extends EventEmitter  {
                         this.emit('zip-data', data);
                     } else if(data.type === 'rtdpz') {
                         this.emit('rtdpz', data);
+                    } else if(data.type === 'mcappi') {
+                        this.emit('mcappi', data);
                     }
                 }).catch(e => {
                     this.emit('error', e);

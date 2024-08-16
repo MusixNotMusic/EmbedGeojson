@@ -26,6 +26,7 @@ import VoxelRender  from '../../core/mapbox/model/VoxelRender/VoxelRender';
 
 import { VoxelFormat } from '../../core/parseFile/Voxel/VoxelFormat';
 import { RtdpzFormat } from '../../core/parseFile/Voxel/RtdpzFormat';
+import { MCAPPIFormat } from '../../core/parseFile/MCAPPI/MCAPPIFormat';
 
 import { throttle, debounce } from 'lodash';
 
@@ -206,6 +207,16 @@ const addMapboxLayer = (map) => {
         bbox[3] = volume.maxLatitude;
 
         _fitBounds(map, bbox);
+    })
+
+
+    dft.on('mcappi', (data) => {
+        console.log('mcappi ==>', data);
+        const fd = data.fd;
+
+        const instance = MCAPPIFormat.parser(data.data);
+        console.log('MCAPPIFormat ==>', instance);
+      
     })
 
     dft.on('drag-enter', () => { showModal.value = true })
